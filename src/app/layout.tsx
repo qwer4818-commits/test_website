@@ -4,7 +4,8 @@ import Providers from './providers';
 
 export const metadata: Metadata = {
   title: 'Campus Bites AI',
-  description: 'KENTECH 생활권 기반 AI 식당·카페 추천 랜딩 페이지',
+  description:
+    'KENTECH 학부생, 대학원생, 교수, 교직원을 위한 식당·카페 추천 및 구성원 후기 서비스',
 };
 
 export default function RootLayout({

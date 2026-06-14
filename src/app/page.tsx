@@ -1,6 +1,8 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
+import { useTheme } from 'next-themes';
+import ReviewsSection from '@/components/reviews-section';
 import placesData from '@/data/places.json';
 import type {
   Budget,
@@ -51,8 +53,6 @@ function scorePlace(place: Place, filters: Filters) {
   if (place.mood === filters.mood) score += 2;
   if (place.group === filters.group) score += 2;
 
-  if (filters.placeType === 'cafe' && place.placeType === 'food') score -= 2;
-  if (filters.placeType === 'drink' && place.placeType === 'cafe') score -= 1;
   if (filters.group === 'team' && place.group === 'friend') score += 1;
   if (filters.distance === 'near' && place.distance === 'medium') score += 1;
   if (filters.budget === 'mid' && place.budget === 'low') score += 1;
@@ -76,7 +76,7 @@ function getSummary(filters: Filters) {
     drink: '술',
   };
   const budgetMap = {
-    low: '학생 예산',
+    low: '가벼운 예산',
     mid: '적당한 가격대',
     high: '조금 여유 있는 선택',
   };
@@ -105,13 +105,10 @@ function getSummary(filters: Filters) {
 
 export default function Home() {
   const [filters, setFilters] = useState<Filters>(defaultFilters);
-  const [dark, setDark] = useState(false);
-
-  useEffect(() => {
-    document.documentElement.classList.toggle('dark', dark);
-  }, [dark]);
+  const { resolvedTheme, setTheme } = useTheme();
 
   const results = [...places]
+    .filter((place) => place.placeType === filters.placeType)
     .map((place) => ({ ...place, score: scorePlace(place, filters) }))
     .sort((a, b) => b.score - a.score)
     .slice(0, 3);
@@ -133,6 +130,7 @@ export default function Home() {
             <a href="#problem">Problem</a>
             <a href="#features">Features</a>
             <a href="#recommend">Recommend</a>
+            <a href="#reviews">Reviews</a>
             <a href="#coverage">Data</a>
           </nav>
         </header>
@@ -143,19 +141,19 @@ export default function Home() {
         >
           <div>
             <p className="mb-4 text-sm font-semibold tracking-[0.18em] text-teal-700 dark:text-teal-300">
-              AI FOOD DISCOVERY FOR STUDENTS
+              FOOD DISCOVERY FOR THE KENTECH COMMUNITY
             </p>
             <h1 className="text-5xl font-bold leading-[0.92] tracking-[-0.05em] md:text-7xl">
-              오늘 수업 끝나고
+              오늘 일정 끝나고
               <br />
               밥 먹을지 카페 갈지
               <br />
               AI가 바로 골라줘요
             </h1>
             <p className="mt-6 max-w-2xl text-lg leading-8 text-[#5a544f] dark:text-[#c7c0b8]">
-              Campus Bites AI는 대학생의 예산, 이동 거리, 혼밥 여부, 수업 사이
-              빈 시간까지 반영해서 지금 가기 좋은 식당과 카페를 추천하는
-              서비스예요.
+              Campus Bites AI는 학부생, 대학원생, 교수, 교직원의 예산과 이동
+              거리, 동행 인원, 일정 사이 빈 시간을 반영해서 지금 가기 좋은
+              식당과 카페를 추천하는 KENTECH 구성원용 서비스예요.
             </p>
             <div className="mt-8 flex flex-wrap gap-3">
               <a
@@ -166,7 +164,9 @@ export default function Home() {
               </a>
               <button
                 type="button"
-                onClick={() => setDark((current) => !current)}
+                onClick={() =>
+                  setTheme(resolvedTheme === 'dark' ? 'light' : 'dark')
+                }
                 className="rounded-full border border-black/10 px-6 py-3 dark:border-white/10"
               >
                 무드 바꾸기
@@ -175,8 +175,8 @@ export default function Home() {
             <div className="mt-5 flex flex-wrap gap-2">
               {[
                 'KENTECH 생활권 기준',
-                'DiningCode 실제 후보 확장',
-                '학생 상황형 추천 MVP',
+                '학부생·대학원생·교수·교직원',
+                '구성원 후기 기반 선택',
               ].map(
                 (item) => (
                   <span
@@ -193,14 +193,14 @@ export default function Home() {
           <div className="rounded-[2rem] border border-black/10 bg-white/60 p-6 shadow-[0_24px_60px_rgba(55,35,15,0.16)] backdrop-blur dark:border-white/10 dark:bg-white/5">
             <div className="mb-6 flex items-center gap-3 text-sm text-[#5a544f] dark:text-[#c7c0b8]">
               <span className="h-2.5 w-2.5 rounded-full bg-orange-500 shadow-[0_0_0_8px_rgba(255,107,44,0.12)]" />
-              <span>student lunch decision engine</span>
+              <span>KENTECH community dining guide</span>
             </div>
             <div className="grid gap-4 sm:grid-cols-2">
               {[
-                ['Target', '대학생 캠퍼스 생활'],
+                ['Target', 'KENTECH 전체 구성원'],
                 ['Core Input', '예산, 거리, 분위기'],
                 ['Recommendation', 'AI 맞춤 장소 3곳'],
-                ['Moment', '점심, 공강, 카페, 저녁약속'],
+                ['Moment', '공강, 연구, 회의, 회식'],
               ].map(([label, value]) => (
                 <article
                   key={label}
@@ -246,7 +246,7 @@ export default function Home() {
                 PROBLEM
               </p>
               <h2 className="text-4xl font-bold tracking-[-0.04em]">
-                대학생이 매일 겪는 식사와 카페 선택 스트레스
+                KENTECH 구성원이 매일 겪는 식사와 모임 장소 선택
               </h2>
             </div>
           </div>
@@ -304,9 +304,9 @@ export default function Home() {
           </div>
           <div className="grid gap-4 md:grid-cols-3">
             {[
-              ['Feature 1', 'AI 질문 3개로 빠른 추천', '오늘 기분, 예산, 이동 가능 거리만 답하면 후보를 바로 압축합니다.'],
-              ['Feature 2', '캠퍼스 중심 거리 계산', '학교 정문, 기숙사, 도서관 같은 출발 지점 기준으로 현실적인 동선을 제안합니다.'],
-              ['Feature 3', '밥·카페·술 카테고리 추천', '공강 점심, 공부 카페, 가벼운 술자리처럼 학생 생활 흐름에 맞춰 고를 수 있습니다.'],
+              ['Feature 1', '조건 선택으로 빠른 추천', '예산, 거리, 분위기와 동행 조건을 선택하면 후보를 바로 압축합니다.'],
+              ['Feature 2', '다양한 구성원 상황 반영', '혼밥, 연구실 식사, 교수 미팅, 부서 회식처럼 서로 다른 이용 맥락을 고려합니다.'],
+              ['Feature 3', 'KENTECH 구성원 후기', '학부생, 대학원생, 교수, 교직원이 직접 남긴 별점과 방문 목적을 함께 확인합니다.'],
             ].map(([step, title, body]) => (
               <article
                 key={title}
@@ -382,13 +382,16 @@ export default function Home() {
                   options={[
                     ['solo', '혼밥'],
                     ['friend', '친구 1~2명'],
-                    ['team', '팀플/모임'],
+                    ['team', '연구실/부서 모임'],
                   ]}
                 />
               </div>
               <div className="mt-5 flex flex-col gap-3">
                 <p className="text-sm leading-6 text-[#5a544f] dark:text-[#c7c0b8]">
                   카페를 선택하면 기본적으로 공부하기 좋은 카페가 먼저 추천되도록 설정돼 있어요.
+                </p>
+                <p className="text-sm font-medium leading-6 text-teal-800 dark:text-teal-300">
+                  외부 생성형 AI가 아닌, 선택 조건과 장소 속성을 비교하는 설명 가능한 규칙 기반 추천입니다.
                 </p>
               </div>
             </section>
@@ -468,6 +471,10 @@ export default function Home() {
           </div>
         </section>
 
+        <ReviewsSection
+          placeNames={places.map((place) => place.name).sort((a, b) => a.localeCompare(b, 'ko'))}
+        />
+
         <section id="coverage" className="space-y-5">
           <div>
             <p className="mb-3 text-sm font-semibold tracking-[0.18em] text-teal-700 dark:text-teal-300">
@@ -492,7 +499,7 @@ export default function Home() {
               [
                 'MVP',
                 '현재 단계',
-                '공개적으로 확인 가능한 후보와 DiningCode 기반 추가 상호를 함께 반영한 데모 버전이라 이후 학교 커뮤니티 후기까지 붙이면 더 좋아집니다.',
+                '공개적으로 확인 가능한 후보와 구성원이 직접 작성하는 브라우저 저장형 후기를 결합한 데모 버전입니다.',
               ],
             ].map(([count, title, body]) => (
               <article

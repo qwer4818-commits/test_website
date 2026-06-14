@@ -1,92 +1,45 @@
-이 프로젝트는 [`EasyNext`](https://github.com/easynext/easynext)를 사용해 생성된 [Next.js](https://nextjs.org) 프로젝트입니다.
+# Campus Bites AI
+
+Campus Bites AI는 학부생, 대학원생, 교수, 교직원을 포함한 KENTECH 전체 구성원이 나주혁신도시·빛가람동의 식당과 카페를 빠르게 고를 수 있도록 돕는 상황 기반 추천 웹 앱입니다.
+
+## 주요 기능
+
+- 장소 유형, 예산, 이동 거리, 분위기, 동행 조건 기반 상위 3곳 추천
+- 58개 실제 장소 후보와 추천 이유, 메뉴, 가격대, 주소, 지도 링크
+- KENTECH 소속, 방문 목적, 별점과 후기 작성
+- 브라우저 `localStorage` 기반 후기 유지, 소속별 필터, 작성 후기 삭제
+- 다크 모드와 모바일·데스크톱 반응형 UI
+
+현재 추천은 외부 생성형 AI API가 아닌 설명 가능한 규칙 기반 점수 방식입니다. 후기 역시 데모 범위에서는 현재 브라우저에만 저장됩니다.
 
 ## Getting Started
 
-개발 서버를 실행합니다.<br/>
-환경에 따른 명령어를 사용해주세요.
+Node.js 20 이상을 권장합니다.
 
 ```bash
+npm install
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
 브라우저에서 [http://localhost:3000](http://localhost:3000)을 열어 결과를 확인할 수 있습니다.
 
-`app/page.tsx` 파일을 수정하여 페이지를 편집할 수 있습니다. 파일을 수정하면 자동으로 페이지가 업데이트됩니다.
+## 검증
 
-## 기본 포함 라이브러리
-
-- [Next.js](https://nextjs.org)
-- [React](https://react.dev)
-- [Tailwind CSS](https://tailwindcss.com)
-- [TypeScript](https://www.typescriptlang.org)
-- [ESLint](https://eslint.org)
-- [Prettier](https://prettier.io)
-- [Shadcn UI](https://ui.shadcn.com)
-- [Lucide Icon](https://lucide.dev)
-- [date-fns](https://date-fns.org)
-- [react-use](https://github.com/streamich/react-use)
-- [es-toolkit](https://github.com/toss/es-toolkit)
-- [Zod](https://zod.dev)
-- [React Query](https://tanstack.com/query/latest)
-- [React Hook Form](https://react-hook-form.com)
-- [TS Pattern](https://github.com/gvergnaud/ts-pattern)
-
-## 사용 가능한 명령어
-
-한글버전 사용
-
-```sh
-easynext lang ko
+```bash
+npm run lint
+npm run build
 ```
 
-최신버전으로 업데이트
+## 기술 구성
 
-```sh
-npm i -g @easynext/cli@latest
-# or
-yarn add -g @easynext/cli@latest
-# or
-pnpm add -g @easynext/cli@latest
-```
+- Next.js 16 App Router
+- React 19, TypeScript
+- Tailwind CSS
+- Lucide Icons
 
-Supabase 설정
+## 배포
 
-```sh
-easynext supabase
-```
+- GitHub: https://github.com/qwer4818-commits/test_website
+- Vercel: https://testlanding-theta.vercel.app
 
-Next-Auth 설정
-
-```sh
-easynext auth
-
-# ID,PW 로그인
-easynext auth idpw
-# 카카오 로그인
-easynext auth kakao
-```
-
-유용한 서비스 연동
-
-```sh
-# Google Analytics
-easynext gtag
-
-# Microsoft Clarity
-easynext clarity
-
-# ChannelIO
-easynext channelio
-
-# Sentry
-easynext sentry
-
-# Google Adsense
-easynext adsense
-```
+2026-06-14 기준 최신 추천·후기 기능이 production에 배포되어 있습니다.
