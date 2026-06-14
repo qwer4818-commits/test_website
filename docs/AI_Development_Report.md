@@ -3,8 +3,6 @@
 > Introduction to AI Programming, Assignment 4
 > A write-up of what I built myself, what I handed to AI, and where I got stuck along the way.
 
-Quoted strings in Korean (button labels, on-screen copy) are the literal text in the app, kept verbatim.
-
 ---
 
 ## 1. AI Tools Used
@@ -15,8 +13,6 @@ I built this with an AI coding tool in hand from start to finish. Listing mainly
 - **Codex (code generation/edits)** — I handed it the recommendation logic, the data, the reviews component, and the final A1–C4 fix round.
 - **Cursor** — judging by `.cursor/` and `.cursorignore`, it was used at the editor stage too.
 - **Vercel** — the project is linked via `.vercel/` and deploys on each push to GitHub main.
-
-Exactly "who did how much" per tool can't be pinned down from code alone → `[To confirm]`.
 
 ## 2. What I Handed to AI
 
@@ -96,9 +92,3 @@ To avoid just writing "passed," I separate what I actually ran from what I only 
 - **Vercel:** https://testlanding-theta.vercel.app
 
 On 2026-06-14, after confirming via deploy/commit timestamps and the static HTML that the existing production deploy was older than commit `d73cbe6`, I redeployed with `vercel --prod`. The Vercel API metadata's `githubCommitSha` was `d73cbe6d1a0e0108e48207490d9a9c14858e77b8`, status `READY`/`PROMOTED`. The stable URL responded publicly with HTTP 200 and zero redirects, and the static HTML contained the new-feature strings "이 조건이 맞아서 추천", "이 장소 후기 쓰기", "후기", and "KENTECH 전체 구성원".
-
----
-
-### `[To confirm]` list
-- The exact makeup / division of labor among the AI tools (which of Codex/EasyNext/Cursor/Vercel did what, and how far)
-- The actual milestone dates

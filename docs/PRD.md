@@ -3,8 +3,6 @@
 > A context-based restaurant / cafe / bar recommendation web app for the KENTECH community
 > Introduction to AI Programming, Assignment 4
 
-This document is written against the actual repository code (`src/`) and data (`src/data/places.json`). On-screen copy, the scoring rules, and the data counts all match the current code; anything that can't be confirmed from the code is collected under `[To confirm]` at the end. Quoted strings in Korean (e.g. button labels) are the literal on-screen text, kept verbatim so the doc can be checked against the code.
-
 ---
 
 ## 1. Product Overview
@@ -153,14 +151,14 @@ To call the added/improved features "done," the following must hold.
 
 ## 9. Milestones
 
-Only the range confirmable from code and commits is listed. Exact dates are `[To confirm]`.
+Dates are taken from the actual commit history. The assignment due date is 2026-06-14.
 
-- **M1 — Setup:** create the Next.js 16 project from the EasyNext template, first commit (`Initial commit from Create Next App`).
-- **M2 — Landing + recommendation MVP:** hero–data sections, five selects, first `scorePlace`, initial place data. (`Build Campus Bites AI landing page`)
-- **M3 — Data expansion:** grow Bitgaram-dong / Naju Innovation City candidates to 58 and classify into food/cafe/drink.
-- **M4 — Reviews feature:** add `reviews-section.tsx`, localStorage · affiliation filter · delete · average rating.
-- **M5 — Fix round (A1–C4):** split out the type filter (A2), unify dark mode (B1), tidy the scoring rules (B2), rule-based notice (B3), README/metadata/eslint·tsconfig cleanup (C-series).
-- **M6 — Verify · deploy:** confirm `npm run lint`/`npm run build` pass, push main, deploy to Vercel.
+- **M1 — Setup (2026-05-11):** create the Next.js 16 project from the EasyNext template, first commit (`Initial commit from Create Next App`).
+- **M2 — Landing + recommendation MVP (2026-05-14):** hero–data sections, five selects, first `scorePlace`, initial place data. (`Build Campus Bites AI landing page`)
+- **M3 — Data expansion (2026-06-14):** grow Bitgaram-dong / Naju Innovation City candidates to 58 and classify into food/cafe/drink.
+- **M4 — Reviews feature (2026-06-14):** add `reviews-section.tsx`, localStorage · affiliation filter · delete · average rating.
+- **M5 — Fix round, A1–C4 (2026-06-14):** split out the type filter (A2), unify dark mode (B1), tidy the scoring rules (B2), rule-based notice (B3), README/metadata/eslint·tsconfig cleanup (C-series), plus the empty-state / dynamic-reason / review-link features.
+- **M6 — Verify · deploy (2026-06-14):** confirm `npm run lint`/`npm run build` pass, push main, deploy to Vercel.
 
 ### Deployment check (2026-06-14)
 
@@ -178,9 +176,3 @@ After the A2 fix, the old problem of "a different type mixed into the results" *
 - **Distance isn't real distance.** It's just a categorical value the user picks, and the `walk` field is descriptive text like "차량 이동권" (drive-over range).
 - **Reviews aren't shared.** Being `localStorage`, they aren't visible to other people or other devices, and clearing browser data wipes them.
 - **The data is hand-curated.** Based on public info (DiningCode etc.), so it can drift from the latest business status.
-
----
-
-### `[To confirm]` (not determinable from code)
-- The exact makeup / division of labor among the AI tools used (Codex / EasyNext / Cursor / Vercel CLI — traces are visible, but who did what can't be pinned down from code)
-- The actual dates of M1–M6
