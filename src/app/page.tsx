@@ -1,9 +1,15 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useTheme } from 'next-themes';
 import ReviewsSection from '@/components/reviews-section';
 import placesData from '@/data/places.json';
+import {
+  Review,
+  STORAGE_KEY,
+  loadLocalReviews,
+  sampleReviews,
+} from '@/lib/reviews';
 import type {
   Budget,
   Distance,
@@ -44,29 +50,81 @@ function createMapLinks(place: Place) {
   };
 }
 
+const moodReason: Record<Mood, string> = {
+  quick: '빠른 식사에 맞음',
+  cozy: '편하게 머물기 좋음',
+  trendy: '요즘 분위기',
+};
+
+const groupReason: Record<Group, string> = {
+  solo: '혼밥 적합',
+  friend: '친구와 가기 좋음',
+  team: '모임 적합',
+};
+
 function scorePlace(place: Place, filters: Filters) {
   let score = 0;
+  const reasons: string[] = [];
 
   if (place.placeType === filters.placeType) score += 4;
-  if (place.budget === filters.budget) score += 3;
-  if (place.distance === filters.distance) score += 3;
-  if (place.mood === filters.mood) score += 2;
-  if (place.group === filters.group) score += 2;
-
-  if (filters.group === 'team' && place.group === 'friend') score += 1;
-  if (filters.distance === 'near' && place.distance === 'medium') score += 1;
-  if (filters.budget === 'mid' && place.budget === 'low') score += 1;
-
-  if (filters.placeType === 'cafe') {
-    if (place.tags.includes('공부하기 좋음')) score += 5;
-    if (place.tags.includes('혼자 가기 좋음')) score += 3;
-    if (place.group === 'solo') score += 2;
-    if (place.mood === 'cozy') score += 2;
-    if (place.tags.includes('대화하기 좋음')) score += 1;
-    if (place.tags.includes('감각적인 공간')) score += 1;
+  if (place.budget === filters.budget) {
+    score += 3;
+    reasons.push('예산 맞음');
+  }
+  if (place.distance === filters.distance) {
+    score += 3;
+    reasons.push('도보 거리 적합');
+  }
+  if (place.mood === filters.mood) {
+    score += 2;
+    reasons.push(moodReason[filters.mood]);
+  }
+  if (place.group === filters.group) {
+    score += 2;
+    reasons.push(groupReason[filters.group]);
   }
 
-  return score;
+  if (filters.group === 'team' && place.group === 'friend') {
+    score += 1;
+    reasons.push('소규모 모임도 가능');
+  }
+  if (filters.distance === 'near' && place.distance === 'medium') {
+    score += 1;
+    reasons.push('가까운 편');
+  }
+  if (filters.budget === 'mid' && place.budget === 'low') {
+    score += 1;
+    reasons.push('예산에 여유');
+  }
+
+  if (filters.placeType === 'cafe') {
+    if (place.tags.includes('공부하기 좋음')) {
+      score += 5;
+      reasons.push('공부하기 좋음');
+    }
+    if (place.tags.includes('혼자 가기 좋음')) {
+      score += 3;
+      reasons.push('혼자 가기 좋음');
+    }
+    if (place.group === 'solo') {
+      score += 2;
+      reasons.push('혼자 집중하기 좋음');
+    }
+    if (place.mood === 'cozy') {
+      score += 2;
+      reasons.push('편안한 분위기');
+    }
+    if (place.tags.includes('대화하기 좋음')) {
+      score += 1;
+      reasons.push('대화하기 좋음');
+    }
+    if (place.tags.includes('감각적인 공간')) {
+      score += 1;
+      reasons.push('감각적인 공간');
+    }
+  }
+
+  return { score, reasons };
 }
 
 function getSummary(filters: Filters) {
@@ -107,9 +165,35 @@ export default function Home() {
   const [filters, setFilters] = useState<Filters>(defaultFilters);
   const { resolvedTheme, setTheme } = useTheme();
 
+  const [localReviews, setLocalReviews] = useState<Review[]>([]);
+  const [reviewRequest, setReviewRequest] = useState({ place: '', nonce: 0 });
+
+  useEffect(() => {
+    // Hydrate browser-only reviews after the server-rendered page mounts.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setLocalReviews(loadLocalReviews());
+  }, []);
+
+  function handleChangeLocalReviews(next: Review[]) {
+    setLocalReviews(next);
+    window.localStorage.setItem(STORAGE_KEY, JSON.stringify(next));
+  }
+
+  const allReviews = [...localReviews, ...sampleReviews];
+  function reviewCountFor(name: string) {
+    return allReviews.filter((review) => review.placeName === name).length;
+  }
+
+  function requestReviewFor(name: string) {
+    setReviewRequest((current) => ({ place: name, nonce: current.nonce + 1 }));
+    document
+      .getElementById('reviews')
+      ?.scrollIntoView({ behavior: 'smooth' });
+  }
+
   const results = [...places]
     .filter((place) => place.placeType === filters.placeType)
-    .map((place) => ({ ...place, score: scorePlace(place, filters) }))
+    .map((place) => ({ ...place, ...scorePlace(place, filters) }))
     .sort((a, b) => b.score - a.score)
     .slice(0, 3);
 
@@ -408,6 +492,16 @@ export default function Home() {
                   {summary.caption}
                 </p>
               </div>
+              {results.length === 0 ? (
+                <article className="rounded-3xl border border-black/10 bg-white/20 p-6 text-center dark:border-white/10 dark:bg-white/5">
+                  <h4 className="text-xl font-semibold">
+                    선택한 조건에 맞는 장소가 없어요.
+                  </h4>
+                  <p className="mt-2 leading-7 text-[#5a544f] dark:text-[#c7c0b8]">
+                    조건을 바꿔보세요.
+                  </p>
+                </article>
+              ) : (
               <div className="grid gap-4">
                 {results.map((place, index) => {
                   const links = createMapLinks(place);
@@ -435,6 +529,11 @@ export default function Home() {
                       <p className="mt-3 leading-7 text-[#5a544f] dark:text-[#c7c0b8]">
                         {place.reason}
                       </p>
+                      {place.reasons.length > 0 && (
+                        <p className="mt-2 text-sm font-medium leading-6 text-teal-800 dark:text-teal-300">
+                          이 조건이 맞아서 추천: {place.reasons.join(' · ')}
+                        </p>
+                      )}
                       <div className="mt-4 flex flex-wrap gap-2">
                         {place.tags.map((tag) => (
                           <span
@@ -445,7 +544,7 @@ export default function Home() {
                           </span>
                         ))}
                       </div>
-                      <div className="mt-4 flex flex-wrap gap-2">
+                      <div className="mt-4 flex flex-wrap items-center gap-2">
                         <a
                           href={links.naver}
                           target="_blank"
@@ -462,17 +561,31 @@ export default function Home() {
                         >
                           구글맵
                         </a>
+                        <button
+                          type="button"
+                          onClick={() => requestReviewFor(place.name)}
+                          className="rounded-full border border-black/10 bg-white/20 px-4 py-2 text-sm dark:border-white/10 dark:bg-white/10"
+                        >
+                          이 장소 후기 쓰기
+                        </button>
+                        <span className="text-sm text-[#5a544f] dark:text-[#c7c0b8]">
+                          후기 {reviewCountFor(place.name)}개
+                        </span>
                       </div>
                     </article>
                   );
                 })}
               </div>
+              )}
             </section>
           </div>
         </section>
 
         <ReviewsSection
           placeNames={places.map((place) => place.name).sort((a, b) => a.localeCompare(b, 'ko'))}
+          localReviews={localReviews}
+          onChangeLocal={handleChangeLocalReviews}
+          reviewRequest={reviewRequest}
         />
 
         <section id="coverage" className="space-y-5">
