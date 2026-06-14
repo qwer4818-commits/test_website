@@ -1,102 +1,104 @@
-# Campus Bites AI — AI 개발 보고서
+# Campus Bites AI — AI Development Report
 
 > Introduction to AI Programming, Assignment 4
-> 코드를 직접 만든 부분과 AI에게 맡긴 부분, 그리고 중간에 막혔던 지점을 정리했다.
+> A write-up of what I built myself, what I handed to AI, and where I got stuck along the way.
+
+Quoted strings in Korean (button labels, on-screen copy) are the literal text in the app, kept verbatim.
 
 ---
 
-## 1. 사용한 AI 도구
+## 1. AI Tools Used
 
-이 프로젝트는 처음부터 끝까지 AI 코딩 도구를 끼고 만들었다. 흔적이 코드/설정에 남아 있는 것 위주로 적으면:
+I built this with an AI coding tool in hand from start to finish. Listing mainly the traces left in the code/config:
 
-- **EasyNext 템플릿** — Next.js 16 + React 19 + Tailwind + shadcn/ui 류 컴포넌트가 미리 깔린 보일러플레이트로 시작했다. `src/components/ui/*`, `providers.tsx`, `use-toast.ts`가 그 잔재다.
-- **Codex (코드 생성/수정)** — 추천 로직, 데이터 작성, 후기 컴포넌트, 그리고 마지막 A1~C4 수정 라운드를 맡겼다.
-- **Cursor** — `.cursor/`, `.cursorignore`가 있는 걸로 보아 에디터 단계에서 같이 썼다.
-- **Vercel** — `.vercel/`로 프로젝트가 링크돼 있고, GitHub main push에 맞춰 배포된다.
+- **EasyNext template** — started from a boilerplate that already had Next.js 16 + React 19 + Tailwind + shadcn/ui-style components. `src/components/ui/*`, `providers.tsx`, and `use-toast.ts` are leftovers of that.
+- **Codex (code generation/edits)** — I handed it the recommendation logic, the data, the reviews component, and the final A1–C4 fix round.
+- **Cursor** — judging by `.cursor/` and `.cursorignore`, it was used at the editor stage too.
+- **Vercel** — the project is linked via `.vercel/` and deploys on each push to GitHub main.
 
-도구별로 "정확히 누가 어디까지 했는지"는 코드만으로 단정하기 어렵다 → `[확인 필요]`.
+Exactly "who did how much" per tool can't be pinned down from code alone → `[To confirm]`.
 
-## 2. AI에게 맡긴 작업
+## 2. What I Handed to AI
 
-- 보일러플레이트 위에 랜딩 페이지 골격(히어로/문제/기능/추천/후기/데이터 섹션) 잡기
-- `places.json` 58곳을 빛가람동·나주혁신도시 실제 장소명 기준으로 채우고, 각 장소에 예산/거리/분위기/동행/태그/추천 이유까지 메타데이터 붙이기
-- `scorePlace` 점수 함수 초안
-- 후기 컴포넌트(`reviews-section.tsx`) — 폼, 별점, localStorage 저장/삭제, 소속 필터
-- 막판 정리: 유형 필터 분리, 다크 모드 통일, eslint flat config 현대화, README/메타데이터 손보기
+- Laying out the landing-page skeleton on top of the boilerplate (hero / problem / features / recommend / reviews / data sections)
+- Filling `places.json` with 58 real place names from Bitgaram-dong / Naju Innovation City, attaching metadata to each (budget / distance / mood / party / tags / reason)
+- A first draft of the `scorePlace` scoring function
+- The reviews component (`reviews-section.tsx`) — form, star rating, localStorage save/delete, affiliation filter
+- The final cleanup: splitting out the type filter, unifying dark mode, modernizing the eslint flat config, touching up README/metadata
 
-내가 한 건 "무엇을 만들지/어떤 규칙으로 추천할지/어디가 틀렸는지"를 정하고, AI 출력이 의도와 어긋나면 되돌려 고치는 쪽이었다.
+What I did was decide *what to build / how the recommendation should rank / what was wrong*, and roll back and fix the AI output whenever it diverged from intent.
 
-## 3. 대표 프롬프트와, 그 결과를 내가 어떻게 고쳤는지
+## 3. Representative Prompts, and How I Fixed the Results
 
-실제로 던졌던 말투에 가깝게 옮긴다. 매끄럽게 정리하지 않았다.
+Rendered close to how I actually phrased them. Not cleaned up.
 
-**프롬프트 1 — "빛가람동 KENTECH 주변 식당/카페/술집 실제로 있는 곳으로 한 50~60개 뽑아서 json으로. 각각 예산 거리 분위기 동행 태그 추천이유 넣어줘."**
-AI가 장소는 잘 모아 왔는데 메타데이터가 들쭉날쭉했다. 같은 가격대인데 어디는 `mid` 어디는 `high`로 찍혀 있고, 카페에 `quick`이 붙어 있기도 했다. 그래서 열거형을 `types/place.ts`에 `budget/distance/mood/group`으로 고정하고, 값이 그 밖으로 새지 않게 데이터를 한 번 훑어 직접 교정했다. 최종 58곳(밥 27·카페 17·술 14).
+**Prompt 1 — "Pull ~50–60 real restaurants/cafes/bars around KENTECH in Bitgaram-dong into JSON. Put budget, distance, mood, party, tags, and a reason on each."**
+The AI gathered the places fine, but the metadata was all over the place. Same price tier marked `mid` here and `high` there; a cafe tagged `quick` in places. So I locked the enums down in `types/place.ts` as `budget/distance/mood/group`, then swept the data by hand so no value leaked outside them. Final: 58 places (food 27 · cafe 17 · drink 14).
 
-**프롬프트 2 — "조건 고르면 점수 매겨서 top3 뽑게 해줘. 카페는 공부하기 좋은 데가 먼저 떠야 함."**
-초안 `scorePlace`가 모든 조건을 비슷한 비중으로 더하기만 해서, 카페를 골라도 "공부 카페"가 위로 안 올라왔다. 그래서 카페일 때만 도는 분기를 두고 태그 "공부하기 좋음"에 **+5**, "혼자 가기 좋음"에 +3을 직접 박아서 의도한 순서가 나오게 눌렀다. (지금 코드의 카페 한정 가산점 블록이 그 결과다.)
+**Prompt 2 — "When I pick conditions, score them and take the top 3. For cafe, study-friendly places should come up first."**
+The first-draft `scorePlace` just added every condition with similar weight, so even picking cafe wouldn't float a "study cafe" to the top. So I added a cafe-only branch and hardcoded **+5** for the tag "공부하기 좋음" and +3 for "혼자 가기 좋음" to force the order I wanted. (The cafe-only bonus block in the current code is the result.)
 
-**프롬프트 3 — "밥 골랐는데 결과에 카페랑 술집이 섞여 나옴. 선택한 유형만 나오게."**
-이게 핵심 버그였다(아래 4번 A2). AI가 점수 안에서 유형에 가중치를 더 주는 식으로 "완화"하려 했는데, 그러면 점수 높은 다른 유형이 여전히 끼어든다. 점수로 풀 문제가 아니라고 보고, `results` 계산 맨 앞에 `.filter(p => p.placeType === filters.placeType)`를 둬서 **후보 자체를 유형으로 잘라낸 뒤** 점수를 매기게 바꿨다.
+**Prompt 3 — "I picked food but cafes and bars showed up in the results. Only show the type I selected."**
+This was the core bug (A2 below). The AI tried to "soften" it by giving the type more weight inside the score, but then a higher-scoring other type still slips in. I decided this isn't a score problem, and put `.filter(p => p.placeType === filters.placeType)` at the very front of the `results` computation so the **candidate pool itself is cut by type before** scoring.
 
-**프롬프트 4 — "다크모드가 두 군데서 따로 논다. next-themes 하나로 합쳐."**
-페이지에 로컬 `dark` 상태 + `document.documentElement.classList.toggle`이 있어서 `next-themes`의 테마와 충돌했다. 로컬 토글을 들어내고 `useTheme()`의 `resolvedTheme/setTheme`만 쓰게 정리했다. "무드 바꾸기" 버튼은 이제 `setTheme(resolvedTheme === 'dark' ? 'light' : 'dark')` 한 줄이다.
+**Prompt 4 — "Dark mode is fighting itself in two places. Merge it onto next-themes."**
+The page had a local `dark` state plus `document.documentElement.classList.toggle`, which clashed with `next-themes`' theme. I ripped out the local toggle and switched to only `useTheme()`'s `resolvedTheme/setTheme`. The "무드 바꾸기" button is now a single line: `setTheme(resolvedTheme === 'dark' ? 'light' : 'dark')`.
 
-**프롬프트 5 — "후기 남기는 거 추가. 별점이랑 소속(학부생/대학원생/교수/교직원), 새로고침해도 남게."**
-컴포넌트 골격은 AI가 잘 짰다. 다만 서버 렌더와 localStorage가 부딪혀 hydration 경고가 떴는데, 첫 렌더에서는 샘플 후기만 그리고 마운트 후 `useEffect`에서 로컬 후기를 불러오도록 분리해 해결했다.
+**Prompt 5 — "Add review writing. Star rating and affiliation (undergrad/grad/faculty/staff), and it should survive a refresh."**
+The component skeleton came out well. But server render and localStorage collided into a hydration warning, so I split it: render only the sample reviews on first paint, then load local reviews in a post-mount `useEffect`.
 
-**프롬프트 6 — "추천 카드에 왜 추천됐는지 한 줄 보여줘. reason은 고정이라 약함. 점수 줄 때 맞은 조건을 같이 뱉게 해."**
-`scorePlace`가 숫자만 돌려주던 걸 `{ score, reasons }`로 바꿨다. 점수 더하는 자리마다 사유 문구를 `reasons`에 push하게 했고, 카드엔 고정 `reason` 아래에 "이 조건이 맞아서 추천: …" 줄을 붙였다. 반환 형태를 바꿨으니 `results`의 `.map(...).sort(...).slice(...)`도 같이 맞췄는데, 점수 계산식은 1도 안 건드려서 순위가 그대로다(시뮬로 26/21/17, 14/14/14 동일 확인). 유형 일치(+4)는 이미 필터로 보장되니 일부러 `reasons`에서 뺐다.
+**Prompt 6 — "Show one line on the card about why it was recommended. The reason is fixed so it's weak. Make the score also spit out which conditions matched."**
+I changed `scorePlace` from returning just a number to `{ score, reasons }`. Each spot that adds points now pushes a reason phrase into `reasons`, and the card got an "이 조건이 맞아서 추천: …" line under the fixed `reason`. Since the return shape changed, I matched up `results`' `.map(...).sort(...).slice(...)` too — but I didn't touch the score math at all, so the ranking is unchanged (sim confirmed identical 26/21/17, 14/14/14). The type match (+4) is already guaranteed by the filter, so I deliberately left it out of `reasons`.
 
-**프롬프트 7 — "추천 카드랑 후기 연결. 그 장소 후기 몇 갠지 뜨고, '후기 쓰기' 누르면 후기 폼 그 장소로 자동선택되게."**
-후기 상태가 `reviews-section.tsx` 안에 갇혀 있어서 카드에서 개수를 못 셌다. 과하게 리팩터링하긴 싫어서, 공유 데이터/타입만 `src/lib/reviews.ts`로 빼고 후기 상태(`localReviews`)를 `Home`으로 끌어올렸다. `ReviewsSection`은 props로 제어되게 바꿨다. 같은 장소를 두 번 눌러도 폼이 다시 바뀌도록 요청에 `nonce`를 붙여 `useEffect`가 재실행되게 했다(이게 없으면 같은 place 값이라 effect가 안 돈다).
+**Prompt 7 — "Link the recommend cards to reviews. Show how many reviews each place has, and 'write review' should auto-select that place in the review form."**
+The review state was trapped inside `reviews-section.tsx`, so the cards couldn't count it. Not wanting to over-refactor, I pulled only the shared data/types out to `src/lib/reviews.ts` and lifted the review state (`localReviews`) up to `Home`. `ReviewsSection` became controlled via props. To make the form re-switch even when the same place is pressed twice, I attached a `nonce` to the request so the `useEffect` re-runs (without it the place value is the same and the effect won't fire).
 
-## 4. 발견한 버그·오류·한계와 해결
+## 4. Bugs, Errors, Limitations Found — and Fixes
 
-추상적으로 "개선했다"가 아니라, 실제로 멈췄던 지점들이다.
+Not an abstract "improved it," but the spots where I actually got stuck.
 
-- **A2 — 유형이 섞여 나오던 버그 (가장 큰 것).** 증상: 장소 유형 "밥"을 골라도 결과 3곳에 카페·술집이 끼었다. 특히 밥·저예산·먼거리·cozy 조합에서 잘 드러났다. 원인: 추천이 전체 58곳을 한 점수표로 정렬해 top3만 잘랐고, 유형 가중치(+4)만으로는 다른 유형이 점수로 역전하는 걸 못 막았다. 해결: `results`에서 점수를 매기기 **전에** `placeType` 필터를 먼저 건다. 검증: 아래 5번에서 5개 조합을 돌려 모든 결과가 단일 유형으로만 나오는 걸 확인했다.
-- **B1 — 다크 모드 이중 관리.** 증상: 토글이 한 번에 안 먹거나 새로고침 시 테마가 튀었다. 원인: 페이지 로컬 상태 + `classList.toggle`이 `next-themes`와 별개로 클래스를 만졌다. 해결: 단일 소스(`next-themes`)로 통일. 지금 페이지에는 `classList.toggle`도 로컬 dark 상태도 없다.
-- **B2 — 점수 규칙 정리.** 예전엔 "카페→식당 -2" 같은 교차 감점이 있었는데, 유형을 필터로 분리한 뒤로는 교차 감점이 의미가 없어졌다(애초에 다른 유형이 후보에 없으니까). 그래서 감점 규칙을 걷어내고, 같은 유형 안에서 상황을 맞추는 가산점·완만한 보정만 남겼다. PRD의 점수표와 코드가 1:1로 일치한다.
-- **B3 — "AI가 골라준다"는 오해 방지.** 추천 영역에 "외부 생성형 AI가 아닌, 선택 조건과 장소 속성을 비교하는 설명 가능한 규칙 기반 추천입니다" 문구를 넣어, LLM을 호출하는 것처럼 보이지 않게 했다.
-- **후기 hydration 경고.** 증상: 콘솔에 서버/클라이언트 불일치 경고. 원인: 서버에는 없는 localStorage 데이터를 첫 렌더에서 그리려 함. 해결: 마운트 후 `useEffect`에서만 로컬 후기를 채운다(`react-hooks/set-state-in-effect`는 의도된 패턴이라 해당 줄만 lint 예외 처리).
-- **남은 한계.** 동률이 많다 — 밥·술은 카페 같은 태그 가산점이 없어 여러 곳이 같은 점수로 묶이고, 그땐 JSON 배열 순서가 tie-break가 된다(임의에 가깝다). 후기는 localStorage라 공유가 안 된다. 거리는 실제 계산이 아니라 사용자가 고르는 범주다. 데이터는 수기 큐레이션이라 영업 상태와 어긋날 수 있다.
+- **A2 — the type-mixing bug (the big one).** Symptom: even picking place type "밥 (food)," cafes/bars showed up among the three results. It was clearest in the food · low-budget · far · cozy combo. Cause: the recommendation sorted all 58 places on one score table and cut the top 3, and the type weight (+4) alone couldn't stop another type from overtaking on score. Fix: apply the `placeType` filter **before** scoring in `results`. Verification: in §5 below I ran five combos and confirmed every result came back single-type.
+- **B1 — dark mode managed twice.** Symptom: the toggle wouldn't take in one go, or the theme flickered on refresh. Cause: a page-local state plus `classList.toggle` touched the class independently of `next-themes`. Fix: unify onto a single source (`next-themes`). The page now has neither `classList.toggle` nor a local dark state.
+- **B2 — scoring rules cleanup.** There used to be cross-type penalties like "cafe→restaurant -2," but once types were split by filter, the cross penalties became meaningless (no other type is in the pool to begin with). So I removed the penalties and kept only the bonuses and gentle nudges that fit the situation within the same type. The PRD's scoring table matches the code 1:1.
+- **B3 — preventing the "AI picks it" misconception.** I added "외부 생성형 AI가 아닌, 선택 조건과 장소 속성을 비교하는 설명 가능한 규칙 기반 추천입니다" to the recommendation area so it doesn't look like it's calling an LLM.
+- **Review hydration warning.** Symptom: a server/client mismatch warning in the console. Cause: trying to render localStorage data on first paint that the server doesn't have. Fix: fill local reviews only in a post-mount `useEffect` (`react-hooks/set-state-in-effect` is the intended pattern here, so only that line is lint-excepted).
+- **Remaining limitations.** Lots of ties — food/drink lack cafe-style tag bonuses, so several places land on the same score and the JSON array order becomes the tiebreak (close to arbitrary). Reviews aren't shared because they're localStorage. Distance isn't a real computation but a category the user picks. The data is hand-curated, so it can drift from real business status.
 
-## 5. 내가 직접 검증한 것 (이번 라운드)
+## 5. What I Verified Myself
 
-말로 "통과"라고만 쓰지 않으려고, 실제로 돌린 것과 코드 검토로만 본 것을 구분한다.
+To avoid just writing "passed," I separate what I actually ran from what I only checked by reading the code.
 
-- **`npm run lint` — 실행함, 통과.** `eslint .`, 종료 코드 0, 경고·에러 없음. (기능 1·2·3 추가할 때마다 각 단계 후 재실행, 매번 0)
-- **`npm run build` — 실행함, 통과.** Next.js 16.2.6(Turbopack), 컴파일 성공, TypeScript 통과, 정적 페이지 4개 생성, `/`가 static으로 prerender(종료 코드 0). 세 기능 모두 추가 후에도 통과.
-- **추천 이유 동적 표시 — 실행(시뮬)으로 확인.** 점수 추출 함수를 그대로 떼어 돌려 보니, 점수는 변경 전과 동일하고(순위 회귀 없음) `reasons` 배열이 맞은 조건과 일치했다. 예: 카페·저예산·가까움·cozy·혼밥 1순위(헤이키커피)는 "예산 맞음 · 도보 거리 적합 · 편하게 머물기 좋음 · 혼밥 적합 · 공부하기 좋음 · 혼자 가기 좋음 · 혼자 집중하기 좋음 · 편안한 분위기".
-- **빈 상태 — 코드 검토로 확인.** `results.length === 0`일 때만 안내 카드가 렌더되도록 분기. 현재 데이터는 유형별로 다 3곳 이상이라 실제로 0이 되진 않지만 방어 코드는 들어가 있다.
-- **후기 수 / 후기 쓰기 연결 — 코드 검토로 확인.** 카드의 "후기 N개"는 (샘플 + 로컬) 후기를 placeName으로 센다(샘플 3곳은 각 1개). 버튼은 `#reviews` 스크롤 + nonce 갱신으로 폼 장소를 바꾼다. 브라우저에서 실제 클릭 테스트는 사람이 할 일로 남겨 둠.
-- **추천 회귀 시뮬레이션 — 실행함.** `places.json`과 `scorePlace`를 그대로 떼어 5개 조합을 돌렸다. 결과:
-  - 밥·저예산·먼거리·cozy·혼밥 → 로뎀나무 / 우리할매떡볶이 / 정씨네 (전부 food)
-  - 밥·저예산·가까움·빠름·혼밥 → 우리할매떡볶이 / 정씨네 / 첨단공원국밥 (전부 food, 14점 동률)
-  - 카페·저예산·가까움·cozy·혼밥 → 헤이키커피 / 소로 커피로스터스 / 멜로우 (전부 cafe, 공부 카페 우선)
-  - 술·중예산·가까움·trendy·친구 → 트레비어 / 요리신 / 요릿집 (전부 drink)
-  - 술·고예산·먼거리·trendy·모임 → 루야네 심야식당 / 재간댁삼겹살 / 육온담 (전부 drink)
-  - → 다섯 조합 모두 단일 유형. A2가 실제로 고쳐졌음을 확인했다.
-- **데이터 개수 — 실행함.** 스크립트로 세어 총 58, food 27 / cafe 17 / drink 14, 모든 장소에 `walk` 필드 존재 확인. README의 "58곳"과 일치.
-- **다크 모드 단일화 / 규칙 기반 문구 / 옛 'STUDENTS·대학생' 문구 제거 — 코드 검토로 확인.** 화면을 직접 띄워 클릭해 본 건 아니다(브라우저 수동 확인은 사람이 할 일로 남겨 둠).
+- **`npm run lint` — ran it, passed.** `eslint .`, exit code 0, no warnings/errors. (Re-ran after each of features 1·2·3, 0 every time.)
+- **`npm run build` — ran it, passed.** Next.js 16.2.6 (Turbopack), compiled, TypeScript passed, 4 static pages generated, `/` prerendered as static (exit code 0). Still passes after all three features.
+- **Dynamic recommendation reasons — confirmed by running a sim.** Lifting out the scoring function and running it, the scores were identical to before (no ranking regression) and the `reasons` array matched the conditions met. E.g. the #1 for cafe · low-budget · near · cozy · solo (헤이키커피) was "예산 맞음 · 도보 거리 적합 · 편하게 머물기 좋음 · 혼밥 적합 · 공부하기 좋음 · 혼자 가기 좋음 · 혼자 집중하기 좋음 · 편안한 분위기".
+- **Empty state — confirmed by code review.** The guidance card renders only when `results.length === 0`. Current data never hits zero (every type has 3+), but the defensive code is there.
+- **Review count / write-review link — confirmed by code review.** A card's "후기 N개" counts (sample + local) reviews by placeName (the 3 sample places have 1 each). The button does a `#reviews` scroll + nonce bump to switch the form's place. Actual click-testing in a browser is left as a human task.
+- **Recommendation regression sim — ran it.** Lifting `places.json` and `scorePlace` verbatim, I ran five combos:
+  - food · low-budget · far · cozy · solo → 로뎀나무 / 우리할매떡볶이 / 정씨네 (all food)
+  - food · low-budget · near · quick · solo → 우리할매떡볶이 / 정씨네 / 첨단공원국밥 (all food, 14-point tie)
+  - cafe · low-budget · near · cozy · solo → 헤이키커피 / 소로 커피로스터스 / 멜로우 (all cafe, study cafes first)
+  - drink · mid-budget · near · trendy · friend → 트레비어 / 요리신 / 요릿집 (all drink)
+  - drink · high-budget · far · trendy · team → 루야네 심야식당 / 재간댁삼겹살 / 육온담 (all drink)
+  - → all five combos single-type. Confirmed A2 is actually fixed.
+- **Data counts — ran it.** Counting by script: total 58, food 27 / cafe 17 / drink 14, and every place has a `walk` field. Matches the README's "58 places."
+- **Dark-mode unification / rule-based notice / removal of old "STUDENTS·대학생" copy — confirmed by code review.** I did not actually open the screen and click through (manual browser checks are left as a human task).
 
-## 6. 내가 결정한 것 vs AI가 구현한 것
+## 6. What I Decided vs. What AI Implemented
 
-- **결정(나):** 타깃을 "대학생"에서 KENTECH 전체 구성원으로 넓힘 / 추천을 LLM이 아니라 설명 가능한 규칙으로 갈 것 / 유형은 점수가 아니라 필터로 분리할 것 / 카페에 한해 공부 카페를 우대할 것 / 후기는 데모 범위에서 localStorage로만.
-  - 이유: 과제 성격상 "왜 이게 추천됐는지" 설명이 되는 게 중요했고, 서버 없이도 즉시 동작해야 데모가 깔끔하다고 봤다. 유형 혼입은 점수로 누르면 또 새기 때문에 구조로 막는 게 맞다고 판단했다.
-- **결정(나) — 이번 라운드:** 추천 이유를 점수 계산에서 직접 끌어와 보여줄 것(데이터 문구를 늘리는 대신 계산 로직에서 뽑는 게 G2 취지에 맞다) / 후기 연결은 상태를 끌어올리되 최소한으로(공유 데이터만 `lib`로 빼고 상태만 `Home`으로, 새 라이브러리·전역 store는 안 씀) / 빈 슬롯은 억지로 안 채움.
-- **구현(AI):** 컴포넌트/JSX 골격, 데이터 1차 작성, 점수 함수 초안, 후기 폼·저장 로직, 설정 파일 현대화(eslint flat config, tailwind ESM import, tsconfig). 이번 라운드의 `reasons` 수집·빈 상태 분기·props 리프트업도 AI가 초안을 내고 내가 반환 형태/회귀/리트리거(nonce)를 손봤다.
+- **Decided (me):** widen the target from "college students" to the whole KENTECH community / go with an explainable rule rather than an LLM for recommendations / separate types with a filter, not the score / favor study cafes only for cafe / keep reviews in localStorage only within the demo scope.
+  - Why: for an assignment, being able to explain "why was this recommended" mattered, and a demo is cleaner if it runs instantly without a server. Type mixing leaks again if you push on it with the score, so I judged it right to block it structurally.
+- **Decided (me) — this round:** pull recommendation reasons directly from the score computation rather than padding the data text (it fits G2's intent better) / keep the review link minimal when lifting state (pull only the shared data into `lib`, only the state into `Home`, no new library or global store) / don't pad empty slots.
+- **Implemented (AI):** component/JSX skeletons, the first data draft, the score-function draft, the review form/save logic, config modernization (eslint flat config, tailwind ESM import, tsconfig). This round's `reasons` collection, empty-state branch, and props lift-up were also AI first drafts that I then fixed for return shape / regression / re-trigger (nonce).
 
-## 7. 최종 배포
+## 7. Final Deployment
 
 - **GitHub:** https://github.com/qwer4818-commits/test_website (branch: main)
 - **Vercel:** https://testlanding-theta.vercel.app
 
-2026-06-14에 기존 production 배포가 커밋 `d73cbe6`보다 오래된 것을 배포·커밋 시각과 정적 HTML로 확인한 뒤 `vercel --prod`로 재배포했다. Vercel API 메타데이터의 `githubCommitSha`는 `d73cbe6d1a0e0108e48207490d9a9c14858e77b8`, 상태는 `READY`/`PROMOTED`였다. 고정 URL은 HTTP 200, 리다이렉트 0회로 공개 응답했고 정적 HTML에서 새 기능 문구 "이 조건이 맞아서 추천", "이 장소 후기 쓰기", "후기", "KENTECH 전체 구성원"을 확인했다.
+On 2026-06-14, after confirming via deploy/commit timestamps and the static HTML that the existing production deploy was older than commit `d73cbe6`, I redeployed with `vercel --prod`. The Vercel API metadata's `githubCommitSha` was `d73cbe6d1a0e0108e48207490d9a9c14858e77b8`, status `READY`/`PROMOTED`. The stable URL responded publicly with HTTP 200 and zero redirects, and the static HTML contained the new-feature strings "이 조건이 맞아서 추천", "이 장소 후기 쓰기", "후기", and "KENTECH 전체 구성원".
 
 ---
 
-### `[확인 필요]` 목록
-- AI 도구의 정확한 구성·역할 분담 (Codex/EasyNext/Cursor/Vercel 중 누가 무엇을 어디까지)
-- 마일스톤 실제 날짜
+### `[To confirm]` list
+- The exact makeup / division of labor among the AI tools (which of Codex/EasyNext/Cursor/Vercel did what, and how far)
+- The actual milestone dates
