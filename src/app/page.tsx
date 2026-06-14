@@ -230,7 +230,7 @@ export default function Home() {
             <h1 className="text-5xl font-bold leading-[0.92] tracking-[-0.05em] md:text-7xl">
               오늘 일정 끝나고
               <br />
-              밥 먹을지 카페 갈지
+              어디로 갈지 고민될 때
               <br />
               AI가 바로 골라줘요
             </h1>

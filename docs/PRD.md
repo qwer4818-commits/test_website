@@ -7,7 +7,7 @@
 
 ## 1. Product Overview
 
-Campus Bites AI narrows down a small decision that KENTECH people make almost every day — "now that today's done, should I grab food or hit a cafe?" Instead of typing keywords into a search box and digging through reviews, you pick your current situation across five fields (budget, walking distance, mood, party type) and it immediately surfaces three matching places.
+Campus Bites AI narrows down a small decision that KENTECH people make almost every day — "now that today's done, where should I go?" You choose the place type yourself (food / cafe / drink); the AI then picks *which* place. Instead of typing keywords into a search box and digging through reviews, you set your current situation across five fields (place type, budget, walking distance, mood, party type) and it immediately surfaces three matching places.
 
 The key point: it gives the *impression* of "AI picks for you," but under the hood it is an **explainable, rule-based scoring recommendation that never calls an external generative AI (LLM)**. You can explain why each place rose to the top through the scoring rules, and it runs instantly off static data with no network calls. The recommendation area says so explicitly — "외부 생성형 AI가 아닌, 선택 조건과 장소 속성을 비교하는 설명 가능한 규칙 기반 추천입니다" (an explainable rule-based recommendation that compares your chosen conditions against place attributes, not an external generative AI).
 
