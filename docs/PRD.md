@@ -173,6 +173,6 @@ After the A2 fix, the old problem of "a different type mixed into the results" *
 - **The recommendation is static and deterministic.** The same input always yields the same three places. It knows nothing about time of day, day of week, or real-time open/closed status.
 - **The flip side of type separation.** Because types are strictly filtered, a contextually great cafe never surfaces when you pick food (an intentional trade-off).
 - **Many ties.** The food/drink paths lack cafe-style tag bonuses, so several places land on the same score (e.g. many 14-point ties in the food · low-budget · near · quick · solo combo). Order is then decided by the original JSON array order (stable sort) — effectively an arbitrary tiebreak.
-- **Distance isn't real distance.** It's just a categorical value the user picks, and the `walk` field is descriptive text like "차량 이동권" (drive-over range).
+- **Distance is a self-selected category, not a computed value.** By design (a no-backend demo), users pick a distance band and each place carries a pre-assigned `near/medium/far` attribute — there is no geolocation or real walking-time calculation. The `walk` field is descriptive text (e.g. "차량 이동권," drive-over range). Adding location-based real distance would be a natural next step beyond this scope.
 - **Reviews aren't shared.** Being `localStorage`, they aren't visible to other people or other devices, and clearing browser data wipes them.
 - **The data is hand-curated.** Based on public info (DiningCode etc.), so it can drift from the latest business status.
