@@ -7,33 +7,33 @@
 
 ## 1. Product Overview
 
-Campus Bites AI narrows down a small decision that KENTECH people make almost every day — "now that today's done, where should I go?" You choose the place type yourself (food / cafe / drink); the AI then picks *which* place. Instead of typing keywords into a search box and digging through reviews, you set your current situation across five fields (place type, budget, walking distance, mood, party type) and it immediately surfaces three matching places.
+Campus Bites AI helps with a small, everyday decision for people at KENTECH. Once today's classes or work are done, where do you actually go? You pick the place type (food, cafe, or drink) and the app picks which specific place. There's no keyword searching or scrolling through reviews. You set five things about your situation (place type, budget, walking distance, mood, and who's coming with you), and three matching places show up right away.
 
-The key point: it gives the *impression* of "AI picks for you," but under the hood it is an **explainable, rule-based scoring recommendation that never calls an external generative AI (LLM)**. You can explain why each place rose to the top through the scoring rules, and it runs instantly off static data with no network calls. The recommendation area says so explicitly — "외부 생성형 AI가 아닌, 선택 조건과 장소 속성을 비교하는 설명 가능한 규칙 기반 추천입니다" (an explainable rule-based recommendation that compares your chosen conditions against place attributes, not an external generative AI).
+It looks like "AI chooses for you," but there is no LLM behind it. The ranking is a plain scoring function, so every result can be traced back to the rules, and it runs off static data with no network call. The recommendation panel says this outright: "외부 생성형 AI가 아닌, 선택 조건과 장소 속성을 비교하는 설명 가능한 규칙 기반 추천입니다" (a rule-based recommendation that compares your conditions against each place's attributes, not an external generative AI).
 
-On top of that, a reviews section where members leave star ratings and visit notes complements the static recommendation with real usage context. Reviews, within this demo's scope, are stored only in the browser's `localStorage`.
+There is also a reviews section. Members leave a star rating and a short note, which adds real usage context on top of the static list. For this demo the reviews stay in the browser's `localStorage`.
 
-The data is **58 places** gathered from real place names in the Naju Innovation City / Bitgaram-dong living area (food 27, cafe 17, drink 14).
+The dataset is 58 real places from the Naju Innovation City / Bitgaram-dong area: 27 food, 17 cafe, 14 drink.
 
 ## 2. Target Users
 
-The product explicitly targets the **whole KENTECH community**. An earlier version had narrowed this to "college students / STUDENTS" only; this widens it.
+The target is the whole KENTECH community, not just students. (An earlier draft said "대학생 / STUDENTS" and we widened it.)
 
-- Undergraduates — a fast, cheap meal during a gap between classes; a casual outing with friends
-- Graduate students — a cafe near the lab to sit and work for a while; a spot to hole up alone near a paper deadline
-- Faculty — a restaurant suitable for meetings or hosting guests
-- Staff — department lunches, team dinners
+- Undergraduates: a quick, cheap meal in a gap between classes, or a casual outing with friends.
+- Graduate students: a cafe near the lab to work for a couple of hours, or somewhere to sit alone before a deadline.
+- Faculty: a restaurant that works for a meeting or for hosting a guest.
+- Staff: department lunches and team dinners.
 
-The affiliation options in the review form (`undergraduate / graduate / faculty / staff`) and the affiliation filter map directly onto these four groups.
+These four map onto the affiliation options in the review form (`undergraduate / graduate / faculty / staff`) and onto the affiliation filter.
 
 ## 3. Project Goals
 
-1. **Cut decision fatigue.** Not search — pick conditions, get three places. It should be over in a few clicks.
-2. **Explainability.** The recommendation must not be a black box. A person should be able to follow which attribute matches produced the score.
-3. **Local realism.** Use real Bitgaram-dong / Naju Innovation City candidates, not made-up places.
-4. **Member participation.** Don't only push recommendations one way — let reviews enrich the data.
+1. **Cut down the choosing.** No searching. Pick a few conditions, get three places, done in a few clicks.
+2. **Stay explainable.** The result should not be a black box. You should be able to trace which matches produced the score.
+3. **Stay realistic to the area.** Use actual Bitgaram-dong / Naju Innovation City places rather than invented ones.
+4. **Let members contribute.** Recommendations go one way, but reviews feed back into the data.
 
-Non-goals (out of scope this round): live business hours / crowd levels, a server DB, login, real distance computation, LLM calls.
+Out of scope this round: live hours or crowd levels, a server database, login, real distance computation, and any LLM call.
 
 ## 4. Core User Scenario
 
@@ -41,50 +41,50 @@ Jimin, a graduate student, finishes a seminar at 4pm. She has two hours before a
 
 1. She opens the page and taps "지금 추천받기" (get recommendations now) at the top.
 2. She picks place type **카페 (cafe)**, budget **under ₩10,000**, distance **5-min walk**, mood **stay a while**, party **solo**.
-3. Three places appear on the right. Because she chose cafe, places tagged "공부하기 좋음" (good for studying) rise to the top (the #1 for this combo is 헤이키커피 나주혁신점).
-4. She reads each card's menu, price range, address, and reason, then checks the location via the Naver Map / Google Maps links.
-5. After visiting, in the reviews section she sets affiliation to "대학원생" (graduate student) and leaves a star rating and a one-line note. Next time she returns in the same browser, that review is still there.
+3. Three places appear on the right. Because she chose cafe, places tagged "공부하기 좋음" (good for studying) rise to the top. The #1 for this combo is 헤이키커피 나주혁신점.
+4. She reads each card's menu, price range, address, and reason, then checks the location through the Naver Map / Google Maps links.
+5. After visiting, she opens the reviews section, sets affiliation to "대학원생" (graduate student), and leaves a star rating with a one-line note. Next time she returns in the same browser, that review is still there.
 
 ## 5. Feature List
 
-Priorities are split into Must (no product without it) / Should (needed for completeness) / Nice (good to have).
+Priority is split into Must (no product without it), Should (needed for completeness), and Nice (good to have).
 
 ### Must
-- **Condition-based Top-3 recommendation** — five selects: place type, budget, distance, mood, party. On selection, scores are computed and the top three are rendered. (`scorePlace`, `results` in `src/app/page.tsx`)
-- **Single-type guarantee** — only the selected place type appears in results. Pick food and cafes/bars never get mixed in. (`results` filters by `placeType === filters.placeType` first)
-- **Empty-state handling** — if the type filter leaves zero candidates, show a guidance card: "선택한 조건에 맞는 장소가 없어요. 조건을 바꿔보세요." (no places match — try changing the conditions). With 1–2 it shows only what exists, without padding empty slots. (With current data zero never happens, but it's handled defensively.)
-- **Dynamic recommendation reasons** — cards don't just carry the fixed `reason` text; below it, an "이 조건이 맞아서 추천: …" (recommended because these matched) line is added. As `scorePlace` awards points, it also collects which conditions matched (budget match, walking distance fits, good for solo, good for studying, etc.). → direct support for G2 (understanding the basis of a recommendation).
-- **Real place data** — 58 places, each with menu / price / address / reason / tags. (`src/data/places.json`)
-- **Map links** — each card links straight to Naver Map and Google Maps. (`createMapLinks`)
+- **Condition-based Top-3.** Five selects: place type, budget, distance, mood, party. Pick them and the three highest-scoring places render immediately. See `scorePlace` and `results` in `src/app/page.tsx`.
+- **Single-type guarantee.** Only the chosen type comes back. If you pick food, cafes and bars can't sneak in, because `results` filters on `placeType === filters.placeType` before doing anything else.
+- **Empty state.** If that filter leaves nothing, the panel shows a card reading "선택한 조건에 맞는 장소가 없어요. 조건을 바꿔보세요." With one or two matches it just shows those, it does not pad up to three. (The current data never actually hits zero; this is defensive.)
+- **Dynamic reasons.** Each card keeps its fixed `reason`, and adds a line under it: "이 조건이 맞아서 추천: …". As `scorePlace` scores a place it also collects which conditions matched (budget match, distance fits, good for solo, good for studying, and so on). This is the concrete support for goal G2.
+- **Real place data.** 58 entries, each with menu, price, address, reason, and tags (`src/data/places.json`).
+- **Map links.** Every card links out to Naver Map and Google Maps (`createMapLinks`).
 
 ### Should
-- **Community reviews** — star rating (1–5), affiliation, nickname, visit purpose, body. Stored in `localStorage`, persists across reloads. (`src/components/reviews-section.tsx`)
-- **Filter by affiliation / average rating** — filter by all / undergraduate / graduate / faculty / staff. Average rating and review count shown at the top.
-- **Delete your own review** — the delete button appears only on locally saved (your own) reviews.
-- **Review ↔ recommend-card link** — each result card shows that place's review count ("후기 N개"), and pressing "이 장소 후기 쓰기" (write a review for this place) scrolls to the reviews section while auto-selecting that place in the form's place select. The review state lives in `Home` (`localReviews`) and `ReviewsSection` is controlled via props. Shared data/types are split out into `src/lib/reviews.ts`.
-- **Dark mode** — unified on `next-themes`. The "무드 바꾸기" (change the mood) button toggles light/dark.
+- **Community reviews** with a 1–5 star rating, affiliation, nickname, visit purpose, and body. Saved to `localStorage` so they survive a reload (`src/components/reviews-section.tsx`).
+- **Affiliation filter and average rating.** Filter by all / undergraduate / graduate / faculty / staff; the average rating and review count sit at the top.
+- **Delete your own review.** The delete button only shows on reviews saved locally, the ones you wrote.
+- **Review-to-card link.** Each result card shows that place's review count ("후기 N개"), and "이 장소 후기 쓰기" scrolls down to the reviews and pre-selects that place in the form. The review state sits in `Home` (`localReviews`), `ReviewsSection` is driven by props, and the shared types and data live in `src/lib/reviews.ts`.
+- **Dark mode** on `next-themes`. The "무드 바꾸기" button flips light and dark.
 
 ### Nice
-- **Cafe-specific weighting** — picking cafe gives extra points to tags like "공부하기 좋음 / 혼자 가기 좋음," so the "study cafe" students look for most rises first.
-- **Seeded sample reviews** — three example reviews preloaded so the section doesn't look empty.
-- **Responsive layout** — handles both mobile and desktop.
+- **Cafe weighting.** Choosing cafe adds points for tags like "공부하기 좋음" and "혼자 가기 좋음", so the study cafe most students want comes up first.
+- **Sample reviews.** Three are preloaded so the section isn't empty on a first visit.
+- **Responsive layout** for mobile and desktop.
 
-> Note: favorites/bookmarks, login, and server storage are not Must/Should this round (unimplemented, and non-goals).
+> Note: favorites/bookmarks, login, and server storage are not Must or Should this round. They are unimplemented and out of scope.
 
 ## 6. Page Structure
 
-A single page (one route, `/`, with an SPA feel) stitched together by anchor navigation. Top nav: Problem · Features · Recommend · Reviews · Data.
+One page (a single route, `/`, with an SPA feel), stitched together by anchor navigation. Top nav: Problem · Features · Recommend · Reviews · Data.
 
 | Anchor | Section | Contents |
 |--------|---------|----------|
 | `#hero` | Hero | One-line value proposition, "지금 추천받기" CTA, "무드 바꾸기" (dark toggle), target/input/recommendation summary cards |
-| `#problem` | Problem | The daily fatigue of picking a place + a snapshot of 58 real candidates (food/cafe/drink counts shown dynamically) |
-| `#features` | Core features | Fast condition-based recommendation, diverse member situations, community reviews — three cards |
-| `#recommend` | Recommendation MVP | Five selects + the "rule-based recommendation" notice on the left; Top-3 result cards on the right (reason line · map links · review count · "write review" button). Guidance card if zero candidates |
-| `#reviews` | Reviews | Submission form (affiliation · nickname · purpose · rating · body) + affiliation filter + review list |
+| `#problem` | Problem | The daily fatigue of picking a place, plus a snapshot of 58 real candidates (food/cafe/drink counts shown dynamically) |
+| `#features` | Core features | Fast condition-based recommendation, diverse member situations, community reviews. Three cards |
+| `#recommend` | Recommendation MVP | Five selects plus the "rule-based recommendation" notice on the left; Top-3 result cards on the right (reason line, map links, review count, "write review" button). Guidance card if zero candidates |
+| `#reviews` | Reviews | Submission form (affiliation, nickname, purpose, rating, body) plus affiliation filter plus review list |
 | `#coverage` | Data status | Total count, food/cafe/drink split, current stage (MVP) note |
 
-The count displays (`totalCount`, `foodCount`, `cafeCount`, `drinkCount`) are not hardcoded — they're derived by counting `places.json`, so growing the data updates the on-screen numbers automatically.
+The counts (`totalCount`, `foodCount`, `cafeCount`, `drinkCount`) are not hardcoded. They are counted from `places.json` at render time, so adding data updates the on-screen numbers by itself.
 
 ## 7. Technical Requirements
 
@@ -95,9 +95,9 @@ The count displays (`totalCount`, `foodCount`, `cafeCount`, `drinkCount`) are no
 - **Icons:** lucide-react
 - **State/data:** client `useState` only. Recommendations import static JSON. Reviews use `localStorage`. No server, DB, or external API.
 - **Data model (`src/types/place.ts`):** `Place = { name, placeType, address, budget, distance, mood, group, menu, walk, price, tags[], reason }`. Enums: `placeType: food|cafe|drink`, `budget: low|mid|high`, `distance: near|medium|far`, `mood: quick|cozy|trendy`, `group: solo|friend|team`.
-- **Review model (`src/lib/reviews.ts`):** `Review = { id, placeName, affiliation, nickname, purpose, rating, content, createdAt, isLocal }`, `affiliation: undergraduate|graduate|faculty|staff`, storage key `campus-bites-reviews`, id from `crypto.randomUUID()`. Types, sample data, and `loadLocalReviews`/`formatDate` live in this module and are shared by `page.tsx` and `reviews-section.tsx`. The review state (`localReviews`) is owned by `Home`, and `ReviewsSection` is controlled via props.
+- **Review model (`src/lib/reviews.ts`):** `Review = { id, placeName, affiliation, nickname, purpose, rating, content, createdAt, isLocal }`, `affiliation: undergraduate|graduate|faculty|staff`, storage key `campus-bites-reviews`, id from `crypto.randomUUID()`. The types, sample data, and `loadLocalReviews`/`formatDate` live in this module and are shared by `page.tsx` and `reviews-section.tsx`. The review state (`localReviews`) is owned by `Home`, and `ReviewsSection` is controlled via props.
 - **Scripts:** `dev = next dev --turbopack`, `build = next build`, `lint = eslint .`
-- **Deployment:** push to GitHub main → Vercel auto-deploy.
+- **Deployment:** push to GitHub main, Vercel auto-deploys.
 
 ### Recommendation scoring rules (exactly as in code)
 
@@ -125,54 +125,54 @@ On top of that, there are bonuses applied **only when "cafe" is the selected pla
 | Tag "대화하기 좋음" (good for talking) | +1 |
 | Tag "감각적인 공간" (stylish space) | +1 |
 
-`scorePlace` returns not just a score but `{ score, reasons }`. `reasons` is an array collecting the reason phrase each time points are added (budget match · walking distance fits · good for solo · good for studying …), and the card's "이 조건이 맞아서 추천:" line joins this array with `·`. The data (`places.json`) is left untouched — only display/computation logic was added.
+`scorePlace` returns `{ score, reasons }`, not just a number. `reasons` collects a short phrase each time points are added (budget match · walking distance fits · good for solo · good for studying, and so on), and the card's "이 조건이 맞아서 추천:" line joins them with `·`. The data file is not touched; this is display and computation only.
 
-In the end, `results` is: (1) filter to the selected type first → (2) attach `{ score, reasons }` to each place → (3) sort by score descending → (4) slice the top three. The place-type weight (+4) effectively remains only as a tiebreaker, which is why a type match is *not* added to `reasons` (it's already guaranteed by the filter). What actually separates types is not the score but the filter in front of it.
+`results` runs in four steps. Filter to the chosen type, attach `{ score, reasons }` to each remaining place, sort by score descending, then take the top three. The place-type weight (+4) is really only a tiebreaker now, so a type match is not pushed into `reasons` (the filter already guarantees it). The thing that actually keeps types apart is that filter, not the score.
 
 ## 7-A. Acceptance Criteria
 
-To call the added/improved features "done," the following must hold.
+To call the added or improved features "done," each of these should hold.
 
-- **Single type:** for any combination, all three results are the selected type. (Passed across five simulated combos.)
-- **Empty state:** if the selected type has zero candidates, a guidance card appears in the results area and the card grid is not rendered. With 1–2, only that many show.
-- **Recommendation reasons:** every result card shows an "이 조건이 맞아서 추천: …" line below the fixed `place.reason`, and that text matches the conditions that actually contributed to the score. If nothing matched, the line is hidden.
+- **Single type:** for any combination, all three results are the selected type. Passed across five simulated combos.
+- **Empty state:** if the selected type has zero candidates, a guidance card appears and the card grid is not rendered. With one or two, only that many show.
+- **Recommendation reasons:** every result card shows the "이 조건이 맞아서 추천: …" line below the fixed `place.reason`, and that text matches the conditions that actually contributed to the score. If nothing matched, the line is hidden.
 - **Review count:** a card's "후기 N개" equals the number of (sample + localStorage) reviews whose place name matches.
-- **Review link:** pressing "이 장소 후기 쓰기" scrolls to `#reviews` and switches the form's place select to that place. It works even when the same place is pressed again (re-triggered via a nonce).
-- **No regression:** after adding the above, `npm run lint` and `npm run build` still pass.
+- **Review link:** pressing "이 장소 후기 쓰기" scrolls to `#reviews` and switches the form's place select to that place. It works even when the same place is pressed twice (re-triggered via a nonce).
+- **No regression:** after all of the above, `npm run lint` and `npm run build` still pass.
 
 ## 8. Design Requirements
 
-- Warm cream/orange gradient background, rounded cards and pill buttons, backdrop blur for a soft tone.
-- Dark mode keeps the same structure but shifts to a dark navy palette. Colors handled via Tailwind `dark:` variants.
-- Accent colors are teal (labels) and orange (numbers, stars). Stars shown as filled/empty.
-- Korean body text dominates and only section labels are uppercase English (e.g. `CORE FEATURES`). Labels are kept short so the two tones don't clash.
-- Keyboard/screen-reader considerations: the rating input is a `role="radiogroup"`, each star has `aria-checked` and `aria-label`. The delete button also has an `aria-label`.
-- Responsive grid that drops to one column on mobile and multiple columns on desktop.
+- Warm cream and orange gradient background, rounded cards and pill buttons, backdrop blur for a soft tone.
+- Dark mode keeps the same structure but shifts to a dark navy palette. Colors are handled with Tailwind `dark:` variants.
+- Accent colors are teal for labels and orange for numbers and stars. Stars are shown filled or empty.
+- Korean body text dominates and only the section labels are uppercase English (for example `CORE FEATURES`). The labels are kept short so the two tones don't clash.
+- Keyboard and screen-reader support: the rating input is a `role="radiogroup"`, each star has `aria-checked` and `aria-label`, and the delete button has an `aria-label` too.
+- A responsive grid that drops to one column on mobile and multiple columns on desktop.
 
 ## 9. Milestones
 
-Dates are taken from the actual commit history. The assignment due date is 2026-06-14.
+Dates come from the actual commit history. The assignment is due 2026-06-14.
 
-- **M1 — Setup (2026-05-11):** create the Next.js 16 project from the EasyNext template, first commit (`Initial commit from Create Next App`).
-- **M2 — Landing + recommendation MVP (2026-05-14):** hero–data sections, five selects, first `scorePlace`, initial place data. (`Build Campus Bites AI landing page`)
-- **M3 — Data expansion (2026-06-14):** grow Bitgaram-dong / Naju Innovation City candidates to 58 and classify into food/cafe/drink.
-- **M4 — Reviews feature (2026-06-14):** add `reviews-section.tsx`, localStorage · affiliation filter · delete · average rating.
-- **M5 — Fix round, A1–C4 (2026-06-14):** split out the type filter (A2), unify dark mode (B1), tidy the scoring rules (B2), rule-based notice (B3), README/metadata/eslint·tsconfig cleanup (C-series), plus the empty-state / dynamic-reason / review-link features.
-- **M6 — Verify · deploy (2026-06-14):** confirm `npm run lint`/`npm run build` pass, push main, deploy to Vercel.
+- **M1, Setup (2026-05-11):** create the Next.js 16 project from the EasyNext template, first commit (`Initial commit from Create Next App`).
+- **M2, Landing + recommendation MVP (2026-05-14):** hero through data sections, five selects, first `scorePlace`, initial place data (`Build Campus Bites AI landing page`).
+- **M3, Data expansion (2026-06-14):** grow the Bitgaram-dong / Naju Innovation City candidates to 58 and classify them into food/cafe/drink.
+- **M4, Reviews feature (2026-06-14):** add `reviews-section.tsx` with localStorage, affiliation filter, delete, and average rating.
+- **M5, Fix round A1–C4 (2026-06-14):** split out the type filter (A2), unify dark mode (B1), tidy the scoring rules (B2), add the rule-based notice (B3), clean up README/metadata/eslint/tsconfig (C-series), and add the empty-state, dynamic-reason, and review-link features.
+- **M6, Verify and deploy (2026-06-14):** confirm `npm run lint` and `npm run build` pass, push main, deploy to Vercel.
 
 ### Deployment check (2026-06-14)
 
-- Vercel production was redeployed at commit `d73cbe6d1a0e0108e48207490d9a9c14858e77b8`.
-- Deploy status was `READY`/`PROMOTED`; the stable URL is https://testlanding-theta.vercel.app.
-- The public URL responded HTTP 200 with zero redirects, and the static HTML contained "이 조건이 맞아서 추천", "이 장소 후기 쓰기", "후기", and "KENTECH 전체 구성원".
+- Vercel production was redeployed at commit `d73cbe6`.
+- Deploy status was `READY`/`PROMOTED`, and the stable URL is https://testlanding-theta.vercel.app.
+- The public URL responded HTTP 200 with no redirects, and the served HTML contained "이 조건이 맞아서 추천", "이 장소 후기 쓰기", "후기", and "KENTECH 전체 구성원".
 
 ## 10. Current Limitations (post-fix)
 
-After the A2 fix, the old problem of "a different type mixed into the results" **no longer occurs** (confirmed by simulation). The real limitations as of now are:
+After the A2 fix, the old "a different type shows up in the results" problem is gone (checked by simulation). What's left:
 
-- **The recommendation is static and deterministic.** The same input always yields the same three places. It knows nothing about time of day, day of week, or real-time open/closed status.
-- **The flip side of type separation.** Because types are strictly filtered, a contextually great cafe never surfaces when you pick food (an intentional trade-off).
-- **Many ties.** The food/drink paths lack cafe-style tag bonuses, so several places land on the same score (e.g. many 14-point ties in the food · low-budget · near · quick · solo combo). Order is then decided by the original JSON array order (stable sort) — effectively an arbitrary tiebreak.
-- **Distance is a self-selected category, not a computed value.** By design (a no-backend demo), users pick a distance band and each place carries a pre-assigned `near/medium/far` attribute — there is no geolocation or real walking-time calculation. The `walk` field is descriptive text (e.g. "차량 이동권," drive-over range). Adding location-based real distance would be a natural next step beyond this scope.
-- **Reviews aren't shared.** Being `localStorage`, they aren't visible to other people or other devices, and clearing browser data wipes them.
-- **The data is hand-curated.** Based on public info (DiningCode etc.), so it can drift from the latest business status.
+- The recommendation is static and deterministic. Same input, same three places, every time. It has no sense of time of day, day of week, or whether a place is actually open right now.
+- Strict type separation cuts both ways. Because the type filter is hard, a cafe that would genuinely fit your situation never appears when you picked food. That is intentional, but it is still a limitation.
+- Ties are common. Food and drink don't get the cafe tag bonuses, so several places often share a score. The food · low-budget · near · quick · solo combo produces a lot of 14-point ties, and when that happens the order falls back to the order in the JSON file, which is basically arbitrary.
+- Distance is a category you pick, not a measured value. This is by design for a no-backend demo: each place has a fixed `near/medium/far` attribute and there is no geolocation or walking-time math. The `walk` field is just descriptive text (for example "차량 이동권", drive-over range). Real, location-based distance would be the obvious next step.
+- Reviews are not shared. They live in `localStorage`, so no one else and no other device sees them, and clearing browser data deletes them.
+- The data is curated by hand from public sources (DiningCode and similar), so it can fall out of date with a place's real status.
